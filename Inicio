@@ -1,0 +1,414 @@
+Imports System.Array
+
+Public Class Inicio
+
+    Dim RemitoCantPelis As String
+    Dim RemitoSoporte As String
+    Dim CantPelisString As String
+    Public Property I As Integer = 0
+    Private WithEvents ttToolTip1 As ToolTip
+
+    Private Sub Inicio_Load(sender As System.Object, e As System.EventArgs) Handles MyBase.Load
+        'TODO: esta línea de código carga datos en la tabla 'VideotkDataSet2.Contador' Puede moverla o quitarla según sea necesario.
+        Me.ContadorTableAdapter.Fill(Me.VideotkDataSet2.Contador)
+        Me.PelisTableAdapter.Fill(Me.VideotkDataSet2.Pelis)
+        Me.RemitoTableAdapter.Fill(Me.VideotkDataSet2.Remito)
+
+        ttToolTip1 = New ToolTip()
+        ttToolTip1.SetToolTip(Button1, "Modifica Datos de la Grilla")
+        ttToolTip1.SetToolTip(Button2, "Guardar Modificaciones de la Grilla")
+        ttToolTip1.SetToolTip(Button3, "Cancela Opcion Modificar Grilla")
+        ttToolTip1.SetToolTip(Button4, "Confirmacion del Remito de Entrega")
+        ttToolTip1.SetToolTip(Button5, "Agrega la Pelicula Seleccionada al Remito de Entrega")
+        ttToolTip1.SetToolTip(Button6, "Elimina la Pelicula Seleccionada del Remito de Entrega")
+        ttToolTip1.SetToolTip(AgregarPeli, "Agregar una nueva Pelicula")
+        ttToolTip1.SetToolTip(Bbuscar, "Busca en la Grilla")
+        ttToolTip1.SetToolTip(Qfiltro, "Quitar Filtro de la Busquedad")
+        ttToolTip1.SetToolTip(BttFacturar, "Facturacion")
+
+        DataGridView1.DefaultCellStyle.ForeColor = Color.Gray
+        DataGridView1.Focus()
+
+        ListViewRemitoPelis.MultiSelect = True
+        ListViewRemitoPelis.View = View.Details
+        ListViewRemitoPelis.GridLines = True
+
+        ListViewRemitoPelis.Columns.Add("Cantidad", "Cant.", 50)
+        ListViewRemitoPelis.Columns.Add("Codigo", "Codigo", 50)
+        ListViewRemitoPelis.Columns.Add("Peliculas", "Peliculas", 200)
+        ListViewRemitoPelis.Columns.Add("Soporte", "Soporte", 110)
+
+        Dim X As String
+        X = Application.StartupPath
+
+        On Error GoTo InnerException
+        With PictureBox1
+            PictureBox1.Load(X & "\" & Caratula.Text)
+        End With
+        Exit Sub
+InnerException:
+
+        PictureBox1.Load(X & "\SinFoto-C.gif")
+
+    End Sub
+
+    'Cierra Formulario Principal
+    Private Sub Inicio_FormClosing(sender As Object, e As System.Windows.Forms.FormClosingEventArgs) Handles Me.
+FormClosing
+
+    End Sub
+
+    'Baja en Grilla Peliculas
+    Private Sub DataGridView1_KeyDown(sender As Object, e As System.Windows.Forms.KeyEventArgs) Handles DataGridView1.KeyDown
+        Dim X As String
+
+        If (VideotkDataSet2.HasChanges()) Then
+            Me.PelisTableAdapter.Update(Me.VideotkDataSet2)
+        End If
+
+        X = Application.StartupPath
+        On Error GoTo InnerException
+        With PictureBox1
+            PictureBox1.Load(X & "\" & Caratula.Text)
+        End With
+        Exit Sub
+InnerException:
+        PictureBox1.Load(X & "\SinFoto-C.gif")
+    End Sub
+
+    'Sube en Grilla Peliculas 
+    Private Sub DataGridView1_KeyUp(sender As Object, e As System.Windows.Forms.KeyEventArgs) Handles DataGridView1.KeyUp
+        Dim X As String
+
+        If (VideotkDataSet2.HasChanges()) Then
+            Me.PelisTableAdapter.Update(Me.VideotkDataSet2)
+        End If
+
+        X = Application.StartupPath
+        On Error GoTo InnerException
+        With PictureBox1
+            PictureBox1.Load(X & "\" & Caratula.Text)
+        End With
+        Exit Sub
+InnerException:
+        PictureBox1.Load(X & "\SinFoto-C.gif")
+
+    End Sub
+
+    'Abre Formulario Web
+    Private Sub Sinopsis_Click(sender As Object, e As System.EventArgs) Handles Sinopsis.Click
+
+        WebForm.ShowDialog()
+
+    End Sub
+
+    'BOTON MODIFICAR
+    Private Sub Button1_Click(sender As System.Object, e As System.EventArgs) Handles Button1.Click
+        DataGridView1.AllowUserToAddRows = False
+        DataGridView1.AllowUserToDeleteRows = True
+        DataGridView1.ReadOnly = False
+        DataGridView1.DefaultCellStyle.ForeColor = Color.Black
+        DataGridView1.AlternatingRowsDefaultCellStyle.BackColor = Color.LightGoldenrodYellow
+        Button1.Enabled = False
+        Button2.Enabled = True
+        Button3.Enabled = True
+        GroupBox1.Enabled = False
+        Button4.Enabled = False
+        Button5.Enabled = False
+        Button6.Enabled = False
+        DataGridView1.Focus()
+    End Sub
+
+    'BOTON GUARDAR 
+    Private Sub Button2_Click(sender As System.Object, e As System.EventArgs) Handles Button2.Click
+
+        DataGridView1.AllowUserToAddRows = False
+        DataGridView1.AllowUserToDeleteRows = False
+        DataGridView1.ReadOnly = True
+        DataGridView1.DefaultCellStyle.ForeColor = Color.Gray
+        DataGridView1.AlternatingRowsDefaultCellStyle.BackColor = Color.LightGray
+        Button1.Enabled = True
+        Button2.Enabled = False
+        Button3.Enabled = False
+        AgregarPeli.Enabled = True
+        GroupBox1.Enabled = True
+        Button4.Enabled = True
+        Button5.Enabled = True
+        Button6.Enabled = True
+        DataGridView1.Focus()
+
+        If (VideotkDataSet2.HasChanges()) Then
+            Me.PelisTableAdapter.Update(Me.VideotkDataSet2)
+            Me.ContadorTableAdapter.Update(Me.VideotkDataSet2)
+            MessageBox.Show("Archivo de Peliculas Actualizado", "VIDEOTK", MessageBoxButtons.OK, MessageBoxIcon.Asterisk)
+        End If
+
+    End Sub
+
+    'BOTON CANCELAR CAMBIOS 
+    Private Sub Button3_Click(sender As System.Object, e As System.EventArgs) Handles Button3.Click
+        Dim NL As String = Environment.NewLine
+
+        If (VideotkDataSet2.HasChanges()) Then
+            DataGridView1.CancelEdit()
+            DataGridView1.AllowUserToAddRows = False
+            DataGridView1.AllowUserToDeleteRows = False
+            DataGridView1.ReadOnly = True
+            DataGridView1.DefaultCellStyle.ForeColor = Color.Gray
+            DataGridView1.AlternatingRowsDefaultCellStyle.BackColor = Color.LightGray
+            GroupBox1.Enabled = True
+            Button4.Enabled = True
+            Button5.Enabled = True
+            Button6.Enabled = True
+            Button1.Enabled = True
+            Button2.Enabled = False
+            Button3.Enabled = False
+            AgregarPeli.Enabled = True
+            Me.ContadorTableAdapter.Fill(Me.VideotkDataSet2.Contador)
+            Me.PelisTableAdapter.Fill(Me.VideotkDataSet2.Pelis)
+            DataGridView1.Focus()
+            Exit Sub
+        End If
+        DataGridView1.AllowUserToAddRows = False
+        DataGridView1.AllowUserToDeleteRows = False
+        DataGridView1.ReadOnly = True
+        DataGridView1.DefaultCellStyle.ForeColor = Color.Gray
+        DataGridView1.AlternatingRowsDefaultCellStyle.BackColor = Color.LightGray
+        GroupBox1.Enabled = True
+        Button4.Enabled = True
+        Button5.Enabled = True
+        Button6.Enabled = True
+        Button1.Enabled = True
+        Button2.Enabled = False
+        Button3.Enabled = False
+        AgregarPeli.Enabled = True
+        DataGridView1.Focus()
+    End Sub
+
+    'Abre Formulario Impresion de Remito 
+    Private Sub Button4_Click(sender As System.Object, e As System.EventArgs) Handles Button4.Click
+        If ListViewRemitoPelis.Items().Count > 0 Then
+            Remito.ShowDialog()
+            Exit Sub
+        End If
+
+        MsgBox("No hay Peliculas Agregadas al Remito")
+
+    End Sub
+
+    'Agregar Pelicula al Remito
+    Private Sub Button5_Click(sender As System.Object, e As System.EventArgs) Handles Button5.Click
+        Dim StringNroRemito As String
+
+        StringNroRemito = NroRemitoconCeros(VideotkDataSet2.Contador(0).NroRemito + 1)
+        TextNroRemito.Text = StringNroRemito
+
+        If I >= 14 Then
+            MsgBox("No se pueden agregar mas de 14 Peliculas al Remito")
+            Exit Sub
+        End If
+
+        PanelRemito.Visible = True
+        CantPelEntrega.Text = ""
+        SoporteEntrega.Text = ""
+        CantPelEntrega.Focus()
+        TitPeliPanel.Text = Titulo.Text
+
+    End Sub
+
+    'Tiempo de Espera por el Error de campos vacios
+    Private Sub Timer1_Tick(sender As System.Object, e As System.EventArgs) Handles Timer1.Tick
+        ErrorPanelRemito.Visible = False
+    End Sub
+
+    'Acepta el ingreso de cantidad y soporte de la pelicula a entregar
+    Private Sub Button7_Click(sender As System.Object, e As System.EventArgs) Handles Button7.Click
+
+        If CantPelEntrega.Text = "" Or SoporteEntrega.Text = "" Then
+            Timer1.Start()
+            ErrorPanelRemito.Visible = True
+            Exit Sub
+        End If
+
+        PanelRemito.Visible = False
+        GroupBox3.Visible = True
+        Label15.Visible = True
+        Nrorem1.Visible = True
+        TextNroRemito.Visible = True
+        ciRem.Visible = True
+
+        Try
+
+            DataGridView1.Focus()
+
+            ListViewRemitoPelis.Items.Add(CantPelEntrega.Text, "I")
+            ListViewRemitoPelis.Items(I).SubItems.Add(Codigo.Text)
+            ListViewRemitoPelis.Items(I).SubItems.Add(Titulo.Text)
+            ListViewRemitoPelis.Items(I).SubItems.Add(SoporteEntrega.Text)
+            I = I + 1
+            ciRem.Text = ListViewRemitoPelis.Items().Count()
+        Catch ex As Exception
+            MsgBox("La Pelicula Seleccionada ya fue Agregada con anterioridad al Remito de Entrega")
+
+        End Try
+
+    End Sub
+
+    'Cancelar Cantidad de Peliculas y Soprte
+    Private Sub Button8_Click(sender As System.Object, e As System.EventArgs) Handles Button8.Click
+        PanelRemito.Visible = False
+    End Sub
+
+    'Eliminar Pelicula del Remito
+    Private Sub Button6_Click(sender As System.Object, e As System.EventArgs) Handles Button6.Click
+
+
+        Try
+            ListViewRemitoPelis.Items.Remove(ListViewRemitoPelis.SelectedItems(0))
+            I = I - 1
+
+            DataGridView1.Focus()
+            ciRem.Text = ListViewRemitoPelis.Items().Count()
+
+        Catch ex As Exception
+            MsgBox("Seleccione una Pelicula del listado REMITO")
+            DataGridView1.Focus()
+        End Try
+    End Sub
+
+    'Agregar una nueva Pelicula
+    Private Sub AgregarPeli_Click(sender As System.Object, e As System.EventArgs) Handles AgregarPeli.Click
+        Dim Cantfilas As Integer
+
+        DataGridView1.AllowUserToAddRows = True
+        DataGridView1.AllowUserToDeleteRows = True
+        DataGridView1.ReadOnly = False
+        DataGridView1.DefaultCellStyle.ForeColor = Color.Black
+        DataGridView1.AlternatingRowsDefaultCellStyle.BackColor = Color.LightGoldenrodYellow
+
+        Button1.Enabled = False
+        AgregarPeli.Enabled = False
+        Button2.Enabled = True
+        Button3.Enabled = True
+        GroupBox1.Enabled = False
+        Button4.Enabled = False
+        Button5.Enabled = False
+        Button6.Enabled = False
+
+        Cantfilas = DataGridView1.RowCount() - 1
+        DataGridView1.FirstDisplayedScrollingRowIndex = DataGridView1.Rows.Count - 1
+        DataGridView1.CurrentCell = DataGridView1.Rows(Cantfilas).Cells(0)
+        DataGridView1.Focus()
+
+    End Sub
+
+    'Funcion para Buscar en Grilla Peliculas
+    Function Buscar( _
+       ByVal Columna As String, _
+       ByVal texto As String, _
+       ByVal BindingSource As BindingSource) As Integer
+
+        Try
+            ' Ejecutar el método Find pasándole los datos  
+            'Dim fila As Integer = BindingSource.Find(Columna.Trim, texto)
+            BindingSource.Filter = ComboBusqueda.Text & " Like '" & texto.Trim & "%'"
+            DataGridView1.DataSource = PelisBindingSource1
+            DataGridView1.Focus()
+            Dim X As String
+            X = Application.StartupPath
+            Try
+                PictureBox1.Load(X & "\" & Caratula.Text)
+            Catch ex As Exception
+                PictureBox1.Load(X & "\SinFoto-C.gif")
+            End Try
+            ' errores  
+        Catch ex As Exception
+            MsgBox(ex.Message.ToString, MsgBoxStyle.Critical)
+        End Try
+        ' no retornar nada  
+        Return 1
+
+
+    End Function
+
+    ' Botón para buscar en el DataGridView  
+    Private Sub Bbuscar_Click(sender As System.Object, e As System.EventArgs) Handles Bbuscar.Click
+        ' Pasar el nombre del campo por el cual buscar ,   
+        ' el dato, y el BindingSource enlazado al DataGridView   
+        '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''  
+        Dim ret As Integer = Buscar( _
+                                  "Titulo", _
+                                 TextBuscar.Text.Trim, _
+                                PelisBindingSource1)
+    End Sub
+
+    'Quita el Filtro 
+    Private Sub Qfiltro_Click(sender As System.Object, e As System.EventArgs) Handles Qfiltro.Click
+        PelisBindingSource1.RemoveFilter()
+        DataGridView1.Focus()
+        Dim X As String
+        X = Application.StartupPath
+        Try
+            PictureBox1.Load(X & "\" & Caratula.Text)
+        Catch ex As Exception
+            PictureBox1.Load(X & "\SinFoto-C.gif")
+        End Try
+    End Sub
+
+    'Agranda Imagen 
+    Private Sub PictureBox1_Click(sender As System.Object, e As System.EventArgs) Handles PictureBox1.Click
+        Dim X As String
+        X = Application.StartupPath
+        PictureBox2.Visible = True
+        Label17.Visible = True
+        Panel2.Visible = True
+        Try
+            PictureBox2.Load(X & "\" & Caratula.Text)
+        Catch ex As Exception
+            PictureBox2.Load(X & "\SinFoto-C.gif")
+        End Try
+    End Sub
+
+    'Cierra Imagen Agrandada
+    Private Sub Label17_Click(sender As System.Object, e As System.EventArgs) Handles Label17.Click
+        PictureBox2.Visible = False
+        Label17.Visible = False
+        Panel2.Visible = False
+    End Sub
+
+    'Obtiene el Ultimo Nro de Pelicula y lo ingresa como default 
+    Private Sub DataGridView1_NewRowNeeded(sender As Object, e As System.Windows.Forms.DataGridViewRowEventArgs) Handles DataGridView1.NewRowNeeded
+
+        Me.ContadorTableAdapter.Fill(Me.VideotkDataSet2.Contador)
+        VideotkDataSet2.Contador(0).NroPeli += 1
+        With e.Row
+            .Cells("CodigoDataGridViewTextBoxColumn").Value = VideotkDataSet2.Contador(0).NroPeli
+        End With
+
+    End Sub
+
+    'Actualiza el Ultimo nro. de Pelicula luego de que se genera una nueva fila 
+    Private Sub DataGridView1_UserAddedRow(sender As Object, e As System.Windows.Forms.DataGridViewRowEventArgs) Handles DataGridView1.UserAddedRow
+
+        Me.ContadorTableAdapter.Update(Me.VideotkDataSet2)
+
+    End Sub
+    'Arma Nro de Remito 
+    Public Function NroRemitoconCeros(ByVal sEntrada As String) As String
+        Dim j As Integer, sIntermedio As String
+        sIntermedio = sEntrada
+        For j = 1 To (8 - Len(sEntrada))
+            sIntermedio = "0" + sIntermedio
+        Next
+        NroRemitoconCeros = sIntermedio
+    End Function
+
+    Private Sub Reimprime_Click(sender As System.Object, e As System.EventArgs) Handles Reimprime.Click
+        Reimpresion.ShowDialog()
+    End Sub
+
+    Private Sub BttFacturar_Click(sender As System.Object, e As System.EventArgs) Handles BttFacturar.Click
+        Facturar.ShowDialog()
+
+    End Sub
+End Class
